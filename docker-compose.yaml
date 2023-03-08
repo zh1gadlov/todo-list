@@ -1,0 +1,43 @@
+version: '3.1'
+
+services:
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://user:password@mongo:27017/
+
+  nest_cloud_run:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nest_cloud_run
+    container_name: nest_cloud_run
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT=$PORT
+      - JWT_SECRET=$JWT_SECRET
+      - JWT_EXPIRES_IN=$JWT_EXPIRES_IN
+      - MONGO_USERNAME=$MONGO_USERNAME
+      - MONGO_PASSWORD=$MONGO_PASSWORD
+      - MONGO_HOSTNAME=$MONGO_HOSTNAME
+      - MONGO_PORT=$MONGO_PORT
+      - MONGO_DB=$MONGO_DB
+    ports:
+      - "80:4000"
+    volumes:
+      - /app/node_modules
+    command: npm run start:dev
